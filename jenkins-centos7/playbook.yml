@@ -1,0 +1,31 @@
+---
+- hosts: ciservers
+  become: yes
+  tasks:
+    - name: install jenkins rpm key
+      rpm_key:
+        state: present
+        key: https://pkg.jenkins.io/redhat/jenkins.io.key
+    - name: install jenkins.repo
+      yum_repository:
+        name: Jenkins
+        description: Jenkins repository
+        baseurl: http://pkg.jenkins.io/redhat
+        gpgcheck: yes
+    - name: install jenkins and dependencies
+      yum:
+        name: "{{ packages }}"
+        state: latest
+      vars:
+        packages:
+        - git
+        - java-1.8.0-openjdk-devel
+        - jenkins
+      notify:
+      - start jenkins
+  handlers:
+    - name: start jenkins
+      systemd:
+        name: jenkins
+        state: started
+        enabled: yes
